@@ -1,0 +1,84 @@
+#boardHolder {
+	display: block;
+	width: 540px;
+	margin: 0 auto;
+}
+
+.row {
+	height: 60px;
+	padding: 0px;
+	margin: 0px;
+}
+
+.square {
+	display: inline-block;
+	width: 60px;
+	height: 60px;
+}
+
+.even {
+	background-color: #666688;
+}
+
+.even:hover {
+	background-color: #628DFA;
+	cursor: pointer;
+}
+
+.odd {
+	background-color: #aaaacc;
+}
+
+.odd:hover {
+	background-color: #628DFA;
+	cursor: pointer;
+}
+
+.xAxis, .yAxis {
+	background-color: #D1D1FC;
+	vertical-align: top;
+	text-align: center;
+	line-height: 60px;
+	font-size: 26px;
+	font-family: Helvetica;
+	color: #888;
+}
+
+.grid {
+	vertical-align: top;
+	text-align: center;
+	line-height: 40px;
+	font-size: 26px;
+	font-family: Helvetica;
+	color: #888;
+}
+
+.grid.active {
+	background-color: #CA9277;
+}
+
+.legal {
+	background-color: #42E4DD;
+}
+
+.attack {
+	background-color: #dd3333;
+}
+
+.piece {
+	display: block;
+	height: 40px;
+	width: 40px;
+	border-radius: 40px;
+	position: relative;
+	left: 10px;
+	top: 10px;
+}
+
+.piece.white {
+	background-color: #ddd;
+}
+
+.piece.black {
+	background-color: #444;
+}
