@@ -3,7 +3,7 @@ $(document).ready(function(){
 	window.pieces = [];
 
 	//board
-	function squareColour (col, row) {
+	function squareParity (col, row) {
 		if (row % 2 == col % 2) { return "even"; }
 		else { return "odd"; }
 	}
@@ -13,42 +13,29 @@ $(document).ready(function(){
 			var $row = $("#row" + rowNum);
 
 			for (var colNum = 1; colNum < 9; colNum++) {
-				$row.append('<div class="square grid ' + squareColour(colNum, rowNum) + '" data-col="' + colNum + '" data-row="' + rowNum + '" id="' + colNum + "_" + rowNum + '"></div>')
+				$row.append('<div class="square grid ' + squareParity(colNum, rowNum) + '" data-col="' + colNum + '" data-row="' + rowNum + '" id="' + colNum + "_" + rowNum + '"></div>')
 			};
 		};
 	};
 
 	//pieces
-	function pieceSymbol (pieceType) {
-		if (pieceType == "pawn") {
-			return "P";
-		}
-		if (pieceType == "rook") {
-			return "R";
-		}
-		if (pieceType == "bishop") {
-			return "B";
-		}
-		if (pieceType == "knight") {
-			return "N";
-		}
-		if (pieceType == "queen") {
-			return "Q";
-		}
-		if (pieceType == "king") {
-			return "K";
-		}
-	}
-
 	function Piece(pieceType, side, col, row) {
 		this.pieceType = pieceType;
 		this.side = side;
-		this.symbol = pieceSymbol(pieceType);
 		this.col = col;
 		this.row = row;
 		this.coord = [col, row];
 		this.hasMoved = false;
 		this.live = true;
+	};
+
+	Piece.prototype.symbol = function() {
+		if (this.pieceType == "pawn") { return "P"; }
+		if (this.pieceType == "rook") { return "R"; }
+		if (this.pieceType == "bishop") { return "B"; }
+		if (this.pieceType == "knight") { return "N"; }
+		if (this.pieceType == "queen") { return "Q"; }
+		if (this.pieceType == "king") { return "K"; }
 	};
 
 	function clearSquares () {
@@ -89,59 +76,70 @@ $(document).ready(function(){
 		// pieces[pieces.length] = new Piece("queen", "black", 4, 5);
 	};
 
-	function getPieceFromSquare($square) {
-		var col = $square.data("col");
-		var row = $square.data("row");
-		for (var i = pieces.length - 1; i >= 0; i--) {
-			var piece = pieces[i];
-			if (piece.col == col && piece.row == row) {
-				return piece;
+	function getPieceAndExecute(col, row, func, copiedPieces) {
+		var pcs = !copiedPieces ? pieces : copiedPieces;
+		for (var i = pcs.length - 1; i >= 0; i--) {
+			if (pcs[i].col == col && pcs[i].row == row && pcs[i].live) {
+				return func(pcs[i]);
 			}
 		}
+		return undefined;
 	}
 
 	function getPiece(col, row) {
-		for (var i = pieces.length - 1; i >= 0; i--) {
-			var piece = pieces[i];
-			if (piece.col == col && piece.row == row) {
-				return piece;
+		function func(piece) {
+			return piece;
+		}
+		return getPieceAndExecute(col, row, func);
+	}
+
+	function getCopiedPiece(col, row, copiedPieces) {
+		function func(piece) {
+			return piece;
+		}
+		return getPieceAndExecute(col, row, func, copiedPieces);
+	}
+
+	function getKings(pcs) {
+		var kings = [];
+		for (var i = pcs.length - 1; i >= 0; i--) {
+			if (pcs[i].pieceType	== "king") {
+				kings[kings.length] = pcs[i];
 			}
 		}
+		return kings;
+	}
+
+	function getPieceFromSquare($square) {
+		var col = $square.data("col");
+		var row = $square.data("row");
+		return getPiece(col, row);
 	}
 
 	function getPieceArrayNum(col, row) {
-		for (var i = pieces.length - 1; i >= 0; i--) {
-			var piece = pieces[i];
-			if (piece.col == col && piece.row == row) {
-				return i;
-			}
+		function func(piece) {
+			return pieces.indexOf(piece);
 		}
+		return getPieceAndExecute(col, row, func);
 	}
 
-	function setPiece(arrayNum, col, row) {
-		window.pieces[arrayNum].col = col;
-		window.pieces[arrayNum].row = row;
-		window.pieces[arrayNum].coord = [col, row];
-		window.pieces[arrayNum].hasMoved = true;
+	function movePieceTo(piece, col, row) {
+		piece.col = col;
+		piece.row = row;
+		piece.coord = [col, row];
+		piece.hasMoved = true;
 	}
 
 	function getSquareFromPiece(piece) {
 		return $("#" + piece.col + "_" + piece.row);
 	}
 
-	function moveOnBoard(col, row) {
+	function moveIsOnBoard(col, row) {
 		return col < 9 && col > 0 && row < 9 && row > 0;
 	}
 
 	function pieceOn(col, row) {
-		var pieceOn = false;
-		for (var i = pieces.length - 1; i >= 0; i--) {
-			if (pieces[i].col == col && pieces[i].row == row && pieces[i].live) {
-				pieceOn = true;
-				break;
-			}
-		}
-		return pieceOn;
+		return !!getPiece(col, row);
 	}
 
 	function drawPieces() {
@@ -149,13 +147,30 @@ $(document).ready(function(){
 		for (var i = pieces.length - 1; i >= 0; i--) {
 			var piece = pieces[i];
 			if (piece.live) {
-				$("#" + piece.col + "_" + piece.row).append('<div class="piece ' + piece.side + '">' + piece.symbol + "</div>");
+				$("#" + piece.col + "_" + piece.row).append('<div class="piece ' + piece.side + '">' + piece.symbol() + "</div>");
 			}
 		};
 	}
 
-	function kingInCheck(p, pNewCol, pNewRow) {
-		return false;
+	function KingInCheck(p, pNewCol, pNewRow) {
+		var sideInCheck = {	white: false, black: false };
+		var newPieces = pieces.slice();
+		var cPiece = getCopiedPiece(p.col, p.row, newPieces);
+		cPiece.col = pNewCol;
+		cPiece.row = pNewRow;
+		var kings = getKings(newPieces);
+
+		for (var k = kings.length - 1; k >= 0; k--) {
+			for (var i = newPieces.length - 1; i >= 0 && newPieces[i].side != kings[k].side; i--) {
+				var lMoves = findLegalMoves(newPieces[i]);
+				for (var j = lMoves.length -1; j >= 0; j--) {
+					if (lMoves[j] == k.coord) {
+						sideInCheck[k.side] = true;
+					}
+				}
+			}
+		}
+		return sideInCheck;
 	}
 
 	function findLegalMoves(p) {
@@ -166,18 +181,17 @@ $(document).ready(function(){
 			var xy2 = [p.col, p.row + 2 * dir];
 			var xyAttack = [[p.col + 1, p.row + dir], [p.col - 1, p.row + dir]];
 
-			if (!pieceOn.apply(this, xy1) && moveOnBoard.apply(this, xy1) && !kingInCheck.apply(this, xy1)) {
+			if (!pieceOn.apply(this, xy1) && moveIsOnBoard.apply(this, xy1)) {
 				lMoves[lMoves.length] = xy1;
 			}
-			if (!pieceOn.apply(this, xy1) && !pieceOn.apply(this, xy2) && moveOnBoard.apply(this, xy2) && !kingInCheck.apply(this, xy2) && !p.hasMoved) {
+			if (!pieceOn.apply(this, xy1) && !pieceOn.apply(this, xy2) && moveIsOnBoard.apply(this, xy2) && !p.hasMoved) {
 				lMoves[lMoves.length] = xy2;
 			}
 			for (var i = 0; i < 2; i++) {
 				var xy = xyAttack[i];
 				if (pieceOn.apply(this, xy)
 				&& getPiece.apply(this, xy).side != p.side
-				&& moveOnBoard.apply(this, xy)
-				&& !kingInCheck.apply(this, xy)) {
+				&& moveIsOnBoard.apply(this, xy)) {
 					lMoves[lMoves.length] = xy;
 				}
 			}
@@ -215,28 +229,28 @@ $(document).ready(function(){
 		}
 
 		if (p.pieceType == "bishop" || p.pieceType == "queen") {
-			for (var i = 1; moveOnBoard(p.col + i, p.row + i); i++) {
+			for (var i = 1; moveIsOnBoard(p.col + i, p.row + i); i++) {
 				var xy1 = [p.col + i, p.row + i];
 				if (pieceOn.apply(this, xy1)) {
 					if (getPiece.apply(this, xy1).side == p.side) { break; } else { lMoves[lMoves.length] = xy1;break; }
 				}
 				else { lMoves[lMoves.length] = xy1; }
 			}
-			for (var i = -1; moveOnBoard(p.col + i, p.row + i); i--) {
+			for (var i = -1; moveIsOnBoard(p.col + i, p.row + i); i--) {
 				var xy2 = [p.col + i, p.row + i];
 				if (pieceOn.apply(this, xy2)) {
 					if (getPiece.apply(this, xy2).side == p.side) { break; } else { lMoves[lMoves.length] = xy2;break; }
 				}
 				else { lMoves[lMoves.length] = xy2; }
 			}
-			for (var i = 1; moveOnBoard(p.col + i, p.row - i); i++) {
+			for (var i = 1; moveIsOnBoard(p.col + i, p.row - i); i++) {
 				var xy3 = [p.col + i, p.row - i];
 				if (pieceOn.apply(this, xy3)) {
 					if (getPiece.apply(this, xy3).side == p.side) { break; } else { lMoves[lMoves.length] = xy3;break; }
 				}
 				else { lMoves[lMoves.length] = xy3; }
 			}
-			for (var i = -1; moveOnBoard(p.col + i, p.row - i); i--) {
+			for (var i = -1; moveIsOnBoard(p.col + i, p.row - i); i--) {
 				var xy4 = [p.col + i, p.row - i];
 				if (pieceOn.apply(this, xy4)) {
 					if (getPiece.apply(this, xy4).side == p.side) { break; } else { lMoves[lMoves.length] = xy4;break; }
@@ -259,8 +273,7 @@ $(document).ready(function(){
 			for (var i = xyAll.length - 1; i >= 0; i--) {
 				var xy = xyAll[i];
 				if ((!pieceOn.apply(this, xy) || (pieceOn.apply(this, xy) && getPiece.apply(this, xy).side != p.side))
-					&& moveOnBoard.apply(this, xy)
-					&& !kingInCheck.apply(this, xy)) {
+					&& moveIsOnBoard.apply(this, xy)) {
 					lMoves[lMoves.length] = xy;
 				}
 			}
@@ -280,8 +293,7 @@ $(document).ready(function(){
 			for (var i = xyAll.length - 1; i >= 0; i--) {
 				var xy = xyAll[i];
 				if ((!pieceOn.apply(this, xy) || (pieceOn.apply(this, xy) && getPiece.apply(this, xy).side != p.side))
-					&& moveOnBoard.apply(this, xy)
-					&& !kingInCheck.apply(this, xy)) {
+					&& moveIsOnBoard.apply(this, xy)) {
 					lMoves[lMoves.length] = xy;
 				}
 			}
@@ -291,12 +303,11 @@ $(document).ready(function(){
 	}
 
 	function movePiece($from, $to) {
-		var arrayNum = getPieceArrayNum($from.data("col"), $from.data("row"));
-		setPiece(arrayNum, $to.data("col"), $to.data("row"));
+		movePieceTo(getPiece($from.data("col"), $from.data("row")), $to.data("col"), $to.data("row"));
 	}
 
 	function removePiece($square) {
-		var arrayNum = getPieceArrayNum($square.data("col"), $square.data("row"));
+		getPiece($square.data("col"), $square.data("row")).live = false;
 
 	}
 
@@ -323,7 +334,7 @@ $(document).ready(function(){
 	$(".grid").click(function() {
 		$piece = $(this).find(".piece");
 		if ($piece.length > 0) {
-			if (!$(this).hasClass("active") || !$(this).hasClass("attack")) {
+			if (!$(this).hasClass("active") && !$(this).hasClass("attack")) {
 				$(".grid").removeClass("active legal attack");
 				$(this).addClass("active");
 				var legalMoves = findLegalMoves(getPieceFromSquare($piece.closest(".square")))
@@ -333,7 +344,7 @@ $(document).ready(function(){
 				$(".grid").removeClass("active legal attack");
 			}
 			else if ($(this).hasClass("attack")) {
-				// removePiece($(this));
+				removePiece($(this));
 				movePiece($(".active"), $(this));
 				$(".grid").removeClass("active legal attack");
 				drawPieces();
@@ -344,11 +355,5 @@ $(document).ready(function(){
 			$(".grid").removeClass("active legal attack");
 			drawPieces();
 		}
-
 	});
 });
-
-
-
-
-
