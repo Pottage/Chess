@@ -1,7 +1,68 @@
-#boardHolder {
-	display: block;
-	width: 540px;
+html, body {
+	margin: 0px;
+	font-family: Helvetica;
+}
+
+.inline {
+	display: inline-block;
+}
+
+#contentWrapper {
 	margin: 0 auto;
+	width: 830px;
+	position: relative;
+	left: -80px;
+}
+
+#logHolder {
+	width: 250px;
+	padding: 15px;
+	background-color: #aaaacc;
+}
+
+#logHolder .titleWrapper {
+	background-color: #666688;
+	color: #ddd;
+	height: 40px;
+	line-height: 40px;
+	font-size: 20px;
+}
+
+#logHolder .titleWrapper .titleHolder {
+	padding: 0px;
+	width: 50%;
+}
+
+#logHolder .titleWrapper .titleHolder div {
+	text-align: center;
+}
+
+#logHolder .titleText {
+	border-radius: 5px;
+	height: 30px;
+	margin: 5px auto;
+	line-height: 32px;
+	width: 80px;
+}
+
+#logHolder .titleText.toMove {
+	background-color: #fff;
+	color: #777;
+}
+
+#logHolder .lineSpacing {
+	width: 0px;
+}
+
+#log {
+	height: 410px;
+	background-color: #eee;
+}
+
+#boardHolder {
+	display: inline-block;
+	width: 540px;
+	vertical-align: top;
 }
 
 .row {
@@ -40,7 +101,6 @@
 	text-align: center;
 	line-height: 60px;
 	font-size: 26px;
-	font-family: Helvetica;
 	color: #888;
 }
 
@@ -49,7 +109,6 @@
 	text-align: center;
 	line-height: 40px;
 	font-size: 26px;
-	font-family: Helvetica;
 	color: #888;
 }
 
