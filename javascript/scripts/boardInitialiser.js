@@ -42,6 +42,18 @@ $(document).ready(function(){
 		return [this.col, this.row];
 	}
 
+	function Move(p, col, row, interactedPiece) {
+		this.piece = p;
+		this.from = [p.col, p.row];
+		this.to = [col, row];
+		this.interactedPiece = interactedPiece;
+	};
+
+	Move.prototype.displacement = function(colOrRow) {
+		var index = colOrRow == "col" ? 0 : 1; 
+		return Math.sqrt(Math.pow(this.from[index] - this.to[index], 2));
+	}
+
 	function clearSquares () {
 		$(".grid").empty();
 	};
@@ -57,19 +69,19 @@ $(document).ready(function(){
 		pieces[pieces.length] = new Piece("rook", "black", 1, 8);
 		pieces[pieces.length] = new Piece("rook", "black", 8, 8);
 
-		// pieces[pieces.length] = new Piece("knight", "white", 2, 1);
-		// pieces[pieces.length] = new Piece("knight", "white", 7, 1);
-		// pieces[pieces.length] = new Piece("knight", "black", 2, 8);
-		// pieces[pieces.length] = new Piece("knight", "black", 7, 8);
+		pieces[pieces.length] = new Piece("knight", "white", 2, 1);
+		pieces[pieces.length] = new Piece("knight", "white", 7, 1);
+		pieces[pieces.length] = new Piece("knight", "black", 2, 8);
+		pieces[pieces.length] = new Piece("knight", "black", 7, 8);
 
-		// pieces[pieces.length] = new Piece("bishop", "white", 3, 1);
-		// pieces[pieces.length] = new Piece("bishop", "white", 6, 1);
-		// pieces[pieces.length] = new Piece("bishop", "black", 3, 8);
-		// pieces[pieces.length] = new Piece("bishop", "black", 6, 8);
+		pieces[pieces.length] = new Piece("bishop", "white", 3, 1);
+		pieces[pieces.length] = new Piece("bishop", "white", 6, 1);
+		pieces[pieces.length] = new Piece("bishop", "black", 3, 8);
+		pieces[pieces.length] = new Piece("bishop", "black", 6, 8);
 
-		// pieces[pieces.length] = new Piece("queen", "white", 4, 1);
+		pieces[pieces.length] = new Piece("queen", "white", 4, 1);
 		pieces[pieces.length] = new Piece("king", "white", 5, 1);
-		// pieces[pieces.length] = new Piece("queen", "black", 4, 8);
+		pieces[pieces.length] = new Piece("queen", "black", 4, 8);
 		pieces[pieces.length] = new Piece("king", "black", 5, 8);
 
 		/////demo
@@ -120,14 +132,9 @@ $(document).ready(function(){
 		return getPieceAndExecute(col, row, func);
 	}
 
-	function logMove(p, col, row, takenPiece) {
-		moves[moves.length] = {
-			piece: p,
-			from: [p.col, p.row],
-			to: [col, row],
-			takenPiece: takenPiece
-		};
-
+	function logMove(p, col, row, interactedPiece) {
+		move = new Move(p, col, row, interactedPiece);
+		moves[moves.length] = move;
 		$log = $("#log");
 		$log.empty();
 		for (var i = 0; i < moves.length; i++) {
@@ -167,23 +174,21 @@ $(document).ready(function(){
 
 	function kingInCheck(p, pNewCol, pNewRow) {
 		var sideInCheck = {	white: false, black: false };
-		var newPieces = pieces.slice();
-		var cPiece = getPiece(p.col, p.row, newPieces);
-		var oldCol = cPiece.col;
-		var oldRow = cPiece.row;
-		var pieceOnNewSquare = getPiece(pNewCol, pNewRow, newPieces);
+		var oldCol = p.col;
+		var oldRow = p.row;
+		var pieceOnNewSquare = getPiece(pNewCol, pNewRow, pieces);
 		if (!!pieceOnNewSquare) {
 			pieceOnNewSquare.live = false;
 		}
-		cPiece.col = pNewCol;
-		cPiece.row = pNewRow;
-		var kings = getKings(newPieces);
+		p.col = pNewCol;
+		p.row = pNewRow;
+		var kings = getKings(pieces);
 
 		for (var k = kings.length - 1; k >= 0; k--) {
 			var king = kings[k];
-			for (var i = newPieces.length - 1; i >= 0; i--) {
-				if (newPieces[i].side != king.side) {
-					var lMoves = findLegalMoves(newPieces[i], newPieces);
+			for (var i = pieces.length - 1; i >= 0; i--) {
+				if (pieces[i].side != king.side) {
+					var lMoves = findLegalMoves(pieces[i], pieces);
 					for (var j = lMoves.length -1; j >= 0; j--) {
 						if (lMoves[j][0] == king.col && lMoves[j][1] == king.row) {
 							sideInCheck[king.side] = true;
@@ -192,12 +197,23 @@ $(document).ready(function(){
 				}
 			}
 		}
-		cPiece.col = oldCol;
-		cPiece.row = oldRow;
+		p.col = oldCol;
+		p.row = oldRow;
 		if (!!pieceOnNewSquare) {
 			pieceOnNewSquare.live = true;
 		}
 		return sideInCheck;
+	}
+
+	function promotePawns() {
+		for (var i = pieces.length - 1; i >= 0; i--) {
+			var p = pieces[i];
+			if (p.pieceType == "pawn" && (p.row == 1 || p.row == 8)) {
+				p.pieceType = "queen";
+				drawPieces();
+				break;
+			}
+		}
 	}
 
 	function findLegalMoves(p, pcs) {
@@ -214,6 +230,14 @@ $(document).ready(function(){
 			}
 			if (!pieceOn.apply(this, xy1, pcs) && !pieceOn.apply(this, xy2, pcs) && moveIsOnBoard.apply(this, xy2) && !p.hasMoved) {
 				lMoves[lMoves.length] = xy2;
+			}
+			if (p.row == 4.5 + 0.5 * dir) {
+				var lastM = moves[moves.length - 1];
+				if (!!lastM && lastM.piece.pieceType == "pawn"
+				&& lastM.displacement("row") == 2
+				&& (lastM.to[0] == p.col - 1 || lastM.to[0] == p.col + 1)) {
+					lMoves[lMoves.length] = [lastM.to[0], lastM.to[1] + dir];
+				}
 			}
 			for (var i = 0; i < 2; i++) {
 				var xy = xyAttack[i];
@@ -326,15 +350,13 @@ $(document).ready(function(){
 				}
 			}
 
-			if (!p.hasMoved) {
+			if (!p.hasMoved && !kingInCheck(p, p.col, p.row)[p.side]) {
 				var rook1 = getPiece(p.col + 3, p.row);
 				var rook2 = getPiece(p.col - 4, p.row);
-
 				if (!pieceOn(p.col + 1, p.row) && !pieceOn(p.col + 2, p.row)
 					&& !!rook1 && rook1.pieceType == "rook" && !rook1.hasMoved) {
 					lMoves[lMoves.length] = [p.col + 2, p.row];
 				}
-
 				if (!pieceOn(p.col - 1, p.row) && !pieceOn(p.col - 2, p.row) && !pieceOn(p.col - 3, p.row)
 					&& !!rook2 && rook2.pieceType == "rook" && !rook2.hasMoved) {
 					lMoves[lMoves.length] = [p.col - 2, p.row];
@@ -345,11 +367,27 @@ $(document).ready(function(){
 		return lMoves;
 	}
 
-	function movePieceAndLog($from, $to) {
+	function movePieceAndLog($from, $to, piece) {
 		var p = getPieceFromSquare($from);
-		var t = getPieceFromSquare($to);
-		logMove(p, $to.data("col"), $to.data("row"), t);
-		movePieceTo(p, $to.data("col"), $to.data("row"));
+		var t = !!piece ? piece : getPieceFromSquare($to);
+		if (p.pieceType == "king" && Math.sqrt(Math.pow(p.col - $to.data("col"), 2)) == 2) {
+			if ($to.data("col") - p.col == 2) {
+				var r = getPiece(8, p.row);
+				logMove(p, $to.data("col"), $to.data("row"), r);
+				movePieceTo(p, 7, $to.data("row"));
+				movePieceTo(r, 6, $to.data("row"));
+			}
+			else {
+				logMove(p, $to.data("col"), $to.data("row"), r);
+				var r = getPiece(1, p.row);
+				movePieceTo(p, 3, $to.data("row"));
+				movePieceTo(r, 4, $to.data("row"));
+			}
+		}
+		else {
+			logMove(p, $to.data("col"), $to.data("row"), t);
+			movePieceTo(p, $to.data("col"), $to.data("row"));
+		}
 	}
 
 	function removePiece($square) {
@@ -362,13 +400,20 @@ $(document).ready(function(){
 			var move = moves[i];
 			var check = kingInCheck(p, move[0], move[1]);
 			if (!check[p.side]) {
-				if (pieceOn(move[0], move[1], pieces)) {
-					$("#" + move[0] + "_" + move[1]).addClass("attack");
+				if (!(p.pieceType == "king" && Math.sqrt(Math.pow(p.col - move[0], 2)) == 2)) {
+					if (pieceOn(move[0], move[1], pieces)
+					|| (p.pieceType == "pawn" && !pieceOn(move[0], move[1], pieces) && move[0] != p.col)
+					) {
+						$("#" + move[0] + "_" + move[1]).addClass("attack");
+					}
+					else {
+						$("#" + move[0] + "_" + move[1]).addClass("legal");
+					}
 				}
-				else {
+				else if (!kingInCheck(p, (move[0] + p.col) / 2, p.row)[p.side]) {
 					$("#" + move[0] + "_" + move[1]).addClass("legal");
 				}
-			};
+			}
 		}
 	}
 
@@ -404,5 +449,13 @@ $(document).ready(function(){
 			$(".grid").removeClass("active legal attack");
 			drawPieces();
 		}
+		else if ($(this).hasClass("attack")) {
+			var p = moves[moves.length-1].piece;
+			p.live = false;
+			movePieceAndLog($(".active"), $(this), p);
+			$(".grid").removeClass("active legal attack");
+			drawPieces();
+		}
+		promotePawns();
 	});
 });

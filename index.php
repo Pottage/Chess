@@ -3,6 +3,7 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="css/main.css">
 		<script type="text/javascript" src="javascript/libs/jquery.js"></script>
+		<script type="text/javascript" src="javascript/libs/underscore.js"></script>
 		<script type="text/javascript" src="javascript/scripts/boardInitialiser.js"></script>
 	</head>
 	<body>
