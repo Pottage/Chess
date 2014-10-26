@@ -33,7 +33,8 @@
 					--><div class="square xAxis">G</div><!--
 					--><div class="square xAxis">H</div>
 				</div>
-			<div>
+			</div><!--
+			--><div id="alertBox" class="inline"></div>
 		</div>
 	</body>
 </html>

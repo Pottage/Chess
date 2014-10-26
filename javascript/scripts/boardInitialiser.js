@@ -123,11 +123,20 @@ $(document).ready(function(){
 	function getKings(pcs) {
 		var kings = [];
 		for (var i = pcs.length - 1; i >= 0; i--) {
-			if (pcs[i].pieceType	== "king") {
+			if (pcs[i].pieceType == "king") {
 				kings[kings.length] = pcs[i];
 			}
 		}
 		return kings;
+	}
+
+	function getKing(side) {
+		for (var i = pieces.length - 1; i >= 0; i--) {
+			var p = pieces[i];
+			if (p.pieceType == "king" && p.side == side) {
+				return p;
+			}
+		}
 	}
 
 	function getPieceFromSquare($square) {
@@ -442,11 +451,40 @@ $(document).ready(function(){
 		}
 	}
 
-	function inCheck(side) {
+	function alertSideToMove() {
+		$("#alertBox").empty().append('<div class="alertText">' + sideToMove + ' to move!</div>');
+		setTimeout(function() {
+			$(".alertText").fadeOut(1000);
+		}, 1000);
+	}
+
+	function alertInCheck(side) {
+		var p = pieces[0];
+		var check = kingInCheck(p, p.col, p.row);
+		if (check[side]) {
+			$("#alertBox").empty().append('<div class="alertText">' + side + ' in check!</div>');
+			$kingSquare = getSquareFromPiece(getKing(side));
+			var flashCount = 0;
+			var flash = setInterval(function() {
+				$kingSquare.addClass("flashing"); console.log("flash on");
+				setTimeout(function() { $kingSquare.removeClass("flashing"); console.log("flash on"); }, 100);
+			}, 200);
+			setTimeout(function() {
+				$(".alertText").fadeOut(1000);
+				clearInterval(flash);
+			}, 1000);
+		}
+	}
+
+	function alertCheckmate() {
+		$("#alertBox").empty().append('<div class="alertText">' + side + ' in check!</div>');
+	}
+	
+	function alertStalemate() {
 
 	}
 
-	function checkmate() {
+	function alertDraw() {
 
 	}
 
@@ -464,13 +502,22 @@ $(document).ready(function(){
 
 	$(".grid").click(function() {
 		$piece = $(this).find(".piece");
-		if ($piece.length > 0 && getPieceFromSquare($piece.closest(".square")).side == sideToMove) {
+		var pieceHasMoved = false;
+
+		if ($piece.length > 0) {
+			var sideCanMove = getPieceFromSquare($piece.closest(".square")).side == sideToMove;
 			if (!$(this).hasClass("active") && !$(this).hasClass("attack")) {
-				$(".grid").removeClass("active legal attack");
-				$(this).addClass("active");
-				var piece = getPieceFromSquare($piece.closest(".square"));
-				var legalMoves = findLegalMoves(piece, pieces);
-				drawLegalMoves(piece, legalMoves);
+				if (sideCanMove) {
+					$(".grid").removeClass("active legal attack");
+					$(this).addClass("active");
+					var piece = getPieceFromSquare($piece.closest(".square"));
+					var legalMoves = findLegalMoves(piece, pieces);
+					drawLegalMoves(piece, legalMoves);			
+				}
+				else {
+					alertSideToMove();
+				}
+
 			}
 			else if ($(this).hasClass("active")) {
 				$(".grid").removeClass("active legal attack");
@@ -480,12 +527,14 @@ $(document).ready(function(){
 				movePieceAndLog($(".active"), $(this));
 				$(".grid").removeClass("active legal attack");
 				drawPieces();
+				pieceHasMoved = true;
 			}
 		}
 		else if ($(this).hasClass("legal")) {
 			movePieceAndLog($(".active"), $(this));
 			$(".grid").removeClass("active legal attack");
 			drawPieces();
+			pieceHasMoved = true;
 		}
 		else if ($(this).hasClass("attack")) {
 			var p = moves[moves.length-1].piece;
@@ -493,8 +542,10 @@ $(document).ready(function(){
 			movePieceAndLog($(".active"), $(this), p);
 			$(".grid").removeClass("active legal attack");
 			drawPieces();
+			pieceHasMoved = true;
 		}
 		promotePawns();
 		updateNextSideToMove();
+		pieceHasMoved ? alertInCheck(sideToMove) : "";
 	});
 });
