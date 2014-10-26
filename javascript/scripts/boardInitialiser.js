@@ -2,6 +2,7 @@ $(document).ready(function(){
 	//globals
 	window.pieces = [];
 	window.moves = [];
+	window.sideToMove = undefined;
 
 	//board
 	function squareParity (col, row) {
@@ -22,6 +23,7 @@ $(document).ready(function(){
 	//pieces
 	function Piece(pieceType, side, col, row) {
 		this.pieceType = pieceType;
+		this.originalPieceType = pieceType;
 		this.side = side;
 		this.col = col;
 		this.row = row;
@@ -36,6 +38,15 @@ $(document).ready(function(){
 		if (this.pieceType == "knight") { return "N"; }
 		if (this.pieceType == "queen") { return "Q"; }
 		if (this.pieceType == "king") { return "K"; }
+	};
+
+	Piece.prototype.originalSymbol = function() {
+		if (this.originalPieceType == "pawn") { return "P"; }
+		if (this.originalPieceType == "rook") { return "R"; }
+		if (this.originalPieceType == "bishop") { return "B"; }
+		if (this.originalPieceType == "knight") { return "N"; }
+		if (this.originalPieceType == "queen") { return "Q"; }
+		if (this.originalPieceType == "king") { return "K"; }
 	};
 
 	Piece.prototype.coord = function() {
@@ -137,10 +148,17 @@ $(document).ready(function(){
 		moves[moves.length] = move;
 		$log = $("#log");
 		$log.empty();
-		for (var i = 0; i < moves.length; i++) {
-			var move = moves[i];
-			var attack = move.takenPiece != undefined;
-			$log.append('<div class="move"><div class="">' + move.piece.symbol() + '</div></div>');
+		for (var i = 0; i < moves.length; i = i + 2) {
+			var whiteMove = moves[i];
+			var blackMove = moves[i + 1];
+			$log.append('<div class="logRow">\
+							<div class="inline logCount" data-move="' + i + '">' + parseInt(i / 2 + 1) + '</div>\
+							<div class="inline whiteMove" data-move="' + i + '">' + whiteMove.piece.originalSymbol() + '</div>\
+						</div>');
+
+			if (!!blackMove) {
+				$(".logRow").last().append('<div class="inline blackMove" data-move="' + parseInt(i + 1) + '">' + blackMove.piece.originalSymbol() + '</div>');
+			}
 		}
 	}
 
@@ -214,6 +232,13 @@ $(document).ready(function(){
 				break;
 			}
 		}
+	}
+
+	function updateNextSideToMove() {
+		var toMove = moves.length % 2 == 0 ? "white" : "black";
+		$(".titleText").removeClass("toMove");
+		$(".titleText." + toMove).addClass("toMove");
+		sideToMove = toMove;
 	}
 
 	function findLegalMoves(p, pcs) {
@@ -417,16 +442,29 @@ $(document).ready(function(){
 		}
 	}
 
+	function inCheck(side) {
+
+	}
+
+	function checkmate() {
+
+	}
+
+	function resetGame() {
+		var $boardHolder = $("#boardHolder");
+		var $board = $(".board");
+		createBoard();
+		createPieces();
+		drawPieces();
+		updateNextSideToMove();
+	}
+
 	//init
-	var $boardHolder = $("#boardHolder");
-	var $board = $(".board");
-	createBoard();
-	createPieces();
-	drawPieces();
+	resetGame();
 
 	$(".grid").click(function() {
 		$piece = $(this).find(".piece");
-		if ($piece.length > 0) {
+		if ($piece.length > 0 && getPieceFromSquare($piece.closest(".square")).side == sideToMove) {
 			if (!$(this).hasClass("active") && !$(this).hasClass("attack")) {
 				$(".grid").removeClass("active legal attack");
 				$(this).addClass("active");
@@ -457,5 +495,6 @@ $(document).ready(function(){
 			drawPieces();
 		}
 		promotePawns();
+		updateNextSideToMove();
 	});
 });

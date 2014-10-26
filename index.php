@@ -11,11 +11,11 @@
 			<div id="logHolder" class="inline">
 				<div class="titleWrapper">
 						<div class="titleHolder inline">
-							<div class="titleText toMove">White</div>
+							<div class="titleText white">White</div>
 						</div><!--
 						--><div class="lineSpacing inline">|</div><!--
 						--><div class="titleHolder inline">
-							<div class="titleText toMove">Black</div>
+							<div class="titleText black">Black</div>
 						</div>
 				</div>
 				<div id="log"></div>
