@@ -451,8 +451,6 @@ $(document).ready(function(){
 	}
 
 	function resetGame() {
-		var $boardHolder = $("#boardHolder");
-		var $board = $(".board");
 		createBoard();
 		createPieces();
 		drawPieces();
@@ -460,6 +458,8 @@ $(document).ready(function(){
 	}
 
 	//init
+	var $boardHolder = $("#boardHolder");
+	var $board = $(".board");
 	resetGame();
 
 	$(".grid").click(function() {
