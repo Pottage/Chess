@@ -161,14 +161,66 @@ html, body {
 	position: relative;
 	left: 10px;
 	top: 10px;
+	background-image: url(../images/icons.png);
+	background-repeat: no-repeat;
 }
 
-.piece.white {
+/*.piece.white {
 	background-color: #ddd;
 }
 
 .piece.black {
 	background-color: #444;
+}
+*/
+
+.piece.K.black {
+	background-position: 7px 5px;
+}
+
+.piece.Q.black {
+	background-position: -49px 5px;
+}
+
+.piece.R.black {
+	background-position: -104px 5px;
+}
+
+.piece.B.black {
+	background-position: -159px 5px;
+}
+
+.piece.N.black {
+	background-position: -216px 5px;
+}
+
+.piece.P.black {
+	background-position: -270px 5px;
+}
+
+
+.piece.K.white {
+	background-position: 7px -42px;
+}
+
+.piece.Q.white {
+	background-position: -49px -42px;
+}
+
+.piece.R.white {
+	background-position: -104px -42px;
+}
+
+.piece.B.white {
+	background-position: -159px -42px;
+}
+
+.piece.N.white {
+	background-position: -216px -42px;
+}
+
+.piece.P.white {
+	background-position: -270px -42px;
 }
 
 #alertBox {

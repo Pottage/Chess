@@ -4,7 +4,10 @@
 		<link rel="stylesheet" type="text/css" href="css/main.css">
 		<script type="text/javascript" src="javascript/libs/jquery.js"></script>
 		<script type="text/javascript" src="javascript/libs/underscore.js"></script>
-		<script type="text/javascript" src="javascript/scripts/boardInitialiser.js"></script>
+		<script type="text/javascript" src="javascript/scripts/class.piece.js"></script>
+		<script type="text/javascript" src="javascript/scripts/class.move.js"></script>
+		<script type="text/javascript" src="javascript/scripts/gameLogic.js"></script>
+		<script type="text/javascript" src="javascript/scripts/board.js"></script>
 	</head>
 	<body>
 		<div id="contentWrapper">
