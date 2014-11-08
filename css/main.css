@@ -155,83 +155,90 @@ html, body {
 
 .piece {
 	display: block;
-	height: 40px;
-	width: 40px;
-	border-radius: 40px;
+	height: 60px;
+	width: 60px;
 	position: relative;
-	left: 10px;
-	top: 10px;
-	background-image: url(../images/icons.png);
+	left: 0px;
+	top: 0px;
+	background-image: url(../images/icons450.png);
 	background-repeat: no-repeat;
 }
 
-/*.piece.white {
-	background-color: #ddd;
-}
-
-.piece.black {
-	background-color: #444;
-}
-*/
-
 .piece.K.black {
-	background-position: 7px 5px;
+	background-position: 10px 7px;
 }
 
 .piece.Q.black {
-	background-position: -49px 5px;
+	background-position: -72px 7px;
 }
 
 .piece.R.black {
-	background-position: -104px 5px;
+	background-position: -156px 7px;
 }
 
 .piece.B.black {
-	background-position: -159px 5px;
+	background-position: -239px 7px;
 }
 
 .piece.N.black {
-	background-position: -216px 5px;
+	background-position: -324px 7px;
 }
 
 .piece.P.black {
-	background-position: -270px 5px;
+	background-position: -405px 7px;
 }
 
 
 .piece.K.white {
-	background-position: 7px -42px;
+	background-position: 10px -63px;
 }
 
 .piece.Q.white {
-	background-position: -49px -42px;
+	background-position: -72px -63px;
 }
 
 .piece.R.white {
-	background-position: -104px -42px;
+	background-position: -156px -63px;
 }
 
 .piece.B.white {
-	background-position: -159px -42px;
+	background-position: -239px -63px;
 }
 
 .piece.N.white {
-	background-position: -216px -42px;
+	background-position: -324px -63px;
 }
 
 .piece.P.white {
-	background-position: -270px -42px;
+	background-position: -405px -63px;
 }
 
-#alertBox {
+#optionsHolder {
 	width: 300px;
 	height: 300px;
 	vertical-align: top;
-	line-height: 300px;
 }
 
 .alertText {
 	margin: 20px;
 	font-size: 30px;
 	color: #777;
+}
+
+.button {
+	display: block;
+	padding: 10px;
+	text-align: center;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 20px;
+	margin: 20px;
+}
+
+.resetButton {
+	background-color: #72E772;
+}
+
+.resetButton:hover {
+	background-color: #a3e7a3;
 }

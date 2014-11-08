@@ -18,7 +18,7 @@ function kingInCheck(p, pNewCol, pNewRow) {
 		var king = kings[k];
 		for (var i = pieces.length - 1; i >= 0; i--) {
 			if (pieces[i].side != king.side) {
-				var lMoves = findLegalMoves(pieces[i], pieces);
+				var lMoves = findAllMoves(pieces[i], pieces);
 				for (var j = lMoves.length -1; j >= 0; j--) {
 					if (lMoves[j][0] == king.col && lMoves[j][1] == king.row) {
 						sideInCheck[king.side] = true;
@@ -35,7 +35,31 @@ function kingInCheck(p, pNewCol, pNewRow) {
 	return sideInCheck;
 }
 
-function findLegalMoves(p, pcs) {
+function filterLegalMoves(p, moves) {
+	var legalMoves = [];
+	for (var i = moves.length - 1; i >= 0; i--) {
+		var move = moves[i];
+		var check = kingInCheck(p, move[0], move[1]);
+		if (!check[p.side]) {
+			if (!(p.pieceType == "king" && Math.sqrt(Math.pow(p.col - move[0], 2)) == 2)) {
+				if (pieceOn(move[0], move[1], pieces)
+				|| (p.pieceType == "pawn" && !pieceOn(move[0], move[1], pieces) && move[0] != p.col)
+				) {
+					legalMoves[legalMoves.length] = move;
+				}
+				else {
+					legalMoves[legalMoves.length] = move;
+				}
+			}
+			else if (!kingInCheck(p, (move[0] + p.col) / 2, p.row)[p.side]) {
+				legalMoves[legalMoves.length] = move;
+			}
+		}
+	}
+	return legalMoves;
+}
+
+function findAllMoves(p, pcs) {
 	if (!p.live) { return []; }
 	var lMoves = [];
 	if (p.pieceType == "pawn") {

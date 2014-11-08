@@ -37,7 +37,12 @@
 					--><div class="square xAxis">H</div>
 				</div>
 			</div><!--
-			--><div id="alertBox" class="inline"></div>
+			--><div id="optionsHolder" class="inline">
+				<div id="options">
+					<div class="button resetButton">restart</div>
+				</div>
+				<div id="alertBox"></div>
+			</div>
 		</div>
 	</body>
 </html>

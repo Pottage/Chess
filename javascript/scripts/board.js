@@ -39,7 +39,6 @@ $(document).ready(function(){
 		for (var i = pieces.length - 1; i >= 0; i--) {
 			var piece = pieces[i];
 			if (piece.live) {
-				// $("#" + piece.col + "_" + piece.row).append('<div class="piece ' + piece.side + '">' + piece.symbol() + "</div>");
 				$("#" + piece.col + "_" + piece.row).append('<div class="piece ' + piece.symbol() + " " + piece.side + '">' + "</div>");
 			}
 		};
@@ -139,26 +138,27 @@ $(document).ready(function(){
 		}, 1000);
 	}
 
-	function alertInCheck(side) {
-		var p = pieces[0];
-		var check = kingInCheck(p, p.col, p.row);
-		if (check[side]) {
-			$("#alertBox").empty().append('<div class="alertText">' + side + ' in check!</div>');
-			$kingSquare = getSquareFromPiece(getKing(side));
-			var flashCount = 0;
-			var flash = setInterval(function() {
-				$kingSquare.addClass("flashing"); console.log("flash on");
-				setTimeout(function() { $kingSquare.removeClass("flashing"); console.log("flash on"); }, 100);
-			}, 200);
-			setTimeout(function() {
-				$(".alertText").fadeOut(1000);
-				clearInterval(flash);
-			}, 1000);
-		}
+	function alertCheck(side) {
+		$("#alertBox").empty().append('<div class="alertText">' + side + ' in check!</div>');
+		$kingSquare = getSquareFromPiece(getKing(side));
+		var flashCount = 0;
+		var flash = setInterval(function() {
+			$kingSquare.addClass("flashing");
+			setTimeout(function() { $kingSquare.removeClass("flashing"); }, 100);
+		}, 200);
+		setTimeout(function() {
+			$(".alertText").fadeOut(1000);
+			clearInterval(flash);
+		}, 1000);
 	}
 
-	function alertCheckmate() {
-		$("#alertBox").empty().append('<div class="alertText">' + side + ' in check!</div>');
+	function alertCheckmate(side) {
+		otherSide = side == "white" ? "black" : "white";
+		$("#alertBox").empty().append('<div class="alertText">\
+			<div>' + side + ' in checkmate.</div>\
+			<div>' + otherSide + ' wins!</div>\
+		</div>');
+
 	}
 	
 	function alertStalemate() {
@@ -169,8 +169,29 @@ $(document).ready(function(){
 
 	}
 
+	function alertState(side) {
+		var k = getKing(side);
+		var check = kingInCheck(k, k.col, k.row);
+		var legalMoves = filterLegalMoves(k, findAllMoves(k, pieces));
+		if (check[side]) {
+			if (legalMoves.length > 0) {
+				alertCheck(side);
+			}
+			else {
+				alertCheckmate(side);
+			}
+		}
+		else if (!check[side] && legalMoves.length == 0) {
+			//missing logic, legalMoves needs to be for ALL pieces
+			alertStalemate();
+		}
+	}
+
 	function resetGame() {
-		createBoard();
+		window.pieces = [];
+		window.moves = [];
+		window.sideToMove = undefined;
+		$("#log").empty();
 		createPieces();
 		drawPieces();
 		updateNextSideToMove();
@@ -179,6 +200,7 @@ $(document).ready(function(){
 	//init
 	var $boardHolder = $("#boardHolder");
 	var $board = $(".board");
+	createBoard();
 	resetGame();
 
 	$(".grid").click(function() {
@@ -192,13 +214,12 @@ $(document).ready(function(){
 					$(".grid").removeClass("active legal attack");
 					$(this).addClass("active");
 					var piece = getPieceFromSquare($piece.closest(".square"));
-					var legalMoves = findLegalMoves(piece, pieces);
+					var legalMoves = findAllMoves(piece, pieces);
 					drawLegalMoves(piece, legalMoves);			
 				}
 				else {
 					alertSideToMove();
 				}
-
 			}
 			else if ($(this).hasClass("active")) {
 				$(".grid").removeClass("active legal attack");
@@ -227,6 +248,13 @@ $(document).ready(function(){
 		}
 		promotePawns();
 		updateNextSideToMove();
-		pieceHasMoved ? alertInCheck(sideToMove) : "";
+
+		if (pieceHasMoved) {
+			alertState(sideToMove);
+		}
+	});
+
+	$(document).on("click", ".resetButton", function() {
+		resetGame();
 	});
 });
