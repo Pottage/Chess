@@ -3,6 +3,7 @@ $(document).ready(function(){
 	window.pieces = [];
 	window.moves = [];
 	window.sideToMove = undefined;
+	window.gameIsEnded = undefined;
 
 	//board
 	function squareParity (col, row) {
@@ -72,11 +73,11 @@ $(document).ready(function(){
 			var blackMove = moves[i + 1];
 			$log.append('<div class="logRow">\
 							<div class="inline logCount" data-move="' + i + '">' + parseInt(i / 2 + 1) + '</div>\
-							<div class="inline whiteMove" data-move="' + i + '">' + whiteMove.piece.originalSymbol() + '</div>\
+							<div class="inline whiteMove" data-move="' + i + '">' + whiteMove.logText() + '</div>\
 						</div>');
 
 			if (!!blackMove) {
-				$(".logRow").last().append('<div class="inline blackMove" data-move="' + parseInt(i + 1) + '">' + blackMove.piece.originalSymbol() + '</div>');
+				$(".logRow").last().append('<div class="inline blackMove" data-move="' + parseInt(i + 1) + '">' + blackMove.logText() + '</div>');
 			}
 		}
 	}
@@ -158,32 +159,61 @@ $(document).ready(function(){
 			<div>' + side + ' in checkmate.</div>\
 			<div>' + otherSide + ' wins!</div>\
 		</div>');
-
 	}
 	
 	function alertStalemate() {
-
+		$("#alertBox").empty().append('<div class="alertText">stalemate!</div>');
 	}
 
 	function alertDraw() {
-
+		$("#alertBox").empty().append('<div class="alertText">draw!</div>');
 	}
 
 	function alertState(side) {
 		var k = getKing(side);
 		var check = kingInCheck(k, k.col, k.row);
-		var legalMoves = filterLegalMoves(k, findAllMoves(k, pieces));
-		if (check[side]) {
+		var allSidePieces = _.filter(pieces, function(p) { return p.side == side && p.live; });
+		var hasLegalMoves = false;
+		for (var i = allSidePieces.length - 1; i >= 0; i--) {
+			var p = allSidePieces[i];
+			var legalMoves = filterLegalMoves(p, findAllMoves(p, pieces));
 			if (legalMoves.length > 0) {
+				hasLegalMoves = true;
+				break;
+			}
+		}
+
+		if (check[side]) {
+			if (hasLegalMoves) {
 				alertCheck(side);
+				return;
 			}
 			else {
 				alertCheckmate(side);
+				gameIsEnded = true;
+				return;
 			}
 		}
-		else if (!check[side] && legalMoves.length == 0) {
-			//missing logic, legalMoves needs to be for ALL pieces
+		else if (!check[side] && !hasLegalMoves) {
 			alertStalemate();
+			gameIsEnded = true;
+			return;
+		}
+
+		var last12 = _.last(moves, 12);
+		if (last12.length == 12) {
+			if (_.isEqual(last12[0], last12[4]) &&
+				_.isEqual(last12[1], last12[5]) &&
+				_.isEqual(last12[2], last12[6]) &&
+				_.isEqual(last12[3], last12[7]) &&
+				_.isEqual(last12[4], last12[8]) &&
+				_.isEqual(last12[5], last12[9]) &&
+				_.isEqual(last12[6], last12[10]) &&
+				_.isEqual(last12[7], last12[11])
+				) {
+				alertDraw();
+				gameIsEnded = true;
+			}
 		}
 	}
 
@@ -191,7 +221,9 @@ $(document).ready(function(){
 		window.pieces = [];
 		window.moves = [];
 		window.sideToMove = undefined;
+		window.gameIsEnded = false;
 		$("#log").empty();
+		$("#alertBox").empty();
 		createPieces();
 		drawPieces();
 		updateNextSideToMove();
@@ -204,6 +236,7 @@ $(document).ready(function(){
 	resetGame();
 
 	$(".grid").click(function() {
+		if (gameIsEnded) { return false; }
 		$piece = $(this).find(".piece");
 		var pieceHasMoved = false;
 
@@ -225,8 +258,9 @@ $(document).ready(function(){
 				$(".grid").removeClass("active legal attack");
 			}
 			else if ($(this).hasClass("attack")) {
+				var p = getPieceFromSquare($(this));
 				removePiece($(this));
-				movePieceAndLog($(".active"), $(this));
+				movePieceAndLog($(".active"), $(this), p);
 				$(".grid").removeClass("active legal attack");
 				drawPieces();
 				pieceHasMoved = true;

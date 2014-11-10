@@ -7,6 +7,8 @@ function Piece(pieceType, side, col, row) {
 	this.row = row;
 	this.hasMoved = false;
 	this.live = true;
+	this.intrinsicValue = this.getIntrinsicValue();
+	this.positionValue = this.getIntrinsicValue();
 };
 
 Piece.prototype.symbol = function() {
@@ -25,6 +27,15 @@ Piece.prototype.originalSymbol = function() {
 	if (this.originalPieceType == "knight") { return "N"; }
 	if (this.originalPieceType == "queen") { return "Q"; }
 	if (this.originalPieceType == "king") { return "K"; }
+};
+
+Piece.prototype.getIntrinsicValue = function() {
+	if (this.originalPieceType == "pawn") { return 1; }
+	if (this.originalPieceType == "rook") { return 5; }
+	if (this.originalPieceType == "bishop") { return 3; }
+	if (this.originalPieceType == "knight") { return 3; }
+	if (this.originalPieceType == "queen") { return 9; }
+	if (this.originalPieceType == "king") { return 0; }	
 };
 
 Piece.prototype.coord = function() {
@@ -57,11 +68,12 @@ function createPieces() {
 	pieces[pieces.length] = new Piece("queen", "black", 4, 8);
 	pieces[pieces.length] = new Piece("king", "black", 5, 8);
 
-	/////demo
+	///demo
 
 	// pieces[pieces.length] = new Piece("rook", "black", 3, 3);
 	// pieces[pieces.length] = new Piece("knight", "black", 4, 2);
 	// pieces[pieces.length] = new Piece("king", "white", 7, 3);
+	// pieces[pieces.length] = new Piece("king", "black", 1, 1);
 	// pieces[pieces.length] = new Piece("queen", "black", 4, 5);
 };
 
