@@ -50,6 +50,8 @@ $(document).ready(function(){
 			var p = pieces[i];
 			if (p.pieceType == "pawn" && (p.row == 1 || p.row == 8)) {
 				p.pieceType = "queen";
+				var move = moves[moves.length - 1];
+				move.logText = move.logText + "=Q";
 				drawPieces();
 				break;
 			}
@@ -63,9 +65,7 @@ $(document).ready(function(){
 		sideToMove = toMove;
 	}
 
-	function logMove(p, col, row, interactedPiece) {
-		move = new Move(p, col, row, interactedPiece);
-		moves[moves.length] = move;
+	function drawLog() {
 		$log = $("#log");
 		$log.empty();
 		for (var i = 0; i < moves.length; i = i + 2) {
@@ -73,13 +73,19 @@ $(document).ready(function(){
 			var blackMove = moves[i + 1];
 			$log.append('<div class="logRow">\
 							<div class="inline logCount" data-move="' + i + '">' + parseInt(i / 2 + 1) + '</div>\
-							<div class="inline whiteMove" data-move="' + i + '">' + whiteMove.logText() + '</div>\
+							<div class="inline whiteMove" data-move="' + i + '">' + whiteMove.logText + '</div>\
 						</div>');
 
 			if (!!blackMove) {
-				$(".logRow").last().append('<div class="inline blackMove" data-move="' + parseInt(i + 1) + '">' + blackMove.logText() + '</div>');
+				$(".logRow").last().append('<div class="inline blackMove" data-move="' + parseInt(i + 1) + '">' + blackMove.logText + '</div>');
 			}
 		}
+	}
+
+	function logMove(p, col, row, interactedPiece) {
+		move = new Move(p, col, row, interactedPiece);
+		moves[moves.length] = move;
+		drawLog();
 	}
 
 	function movePieceAndLog($from, $to, piece) {
@@ -93,8 +99,8 @@ $(document).ready(function(){
 				movePieceTo(r, 6, $to.data("row"));
 			}
 			else {
-				logMove(p, $to.data("col"), $to.data("row"), r);
 				var r = getPiece(1, p.row);
+				logMove(p, $to.data("col"), $to.data("row"), r);
 				movePieceTo(p, 3, $to.data("row"));
 				movePieceTo(r, 4, $to.data("row"));
 			}
@@ -171,7 +177,9 @@ $(document).ready(function(){
 
 	function alertState(side) {
 		var k = getKing(side);
+		console.log("-----start", side);
 		var check = kingInCheck(k, k.col, k.row);
+		console.log("-----end");
 		var allSidePieces = _.filter(pieces, function(p) { return p.side == side && p.live; });
 		var hasLegalMoves = false;
 		for (var i = allSidePieces.length - 1; i >= 0; i--) {
@@ -186,6 +194,10 @@ $(document).ready(function(){
 		if (check[side]) {
 			if (hasLegalMoves) {
 				alertCheck(side);
+				var move = moves[moves.length - 1];
+				move.logText = move.logText + "+";
+				move.sideInCheck = side;
+				drawLog();
 				return;
 			}
 			else {

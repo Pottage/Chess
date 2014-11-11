@@ -6,9 +6,11 @@ function kingInCheck(p, pNewCol, pNewRow) {
 	var sideInCheck = {	white: false, black: false };
 	var oldCol = p.col;
 	var oldRow = p.row;
+	var killedPiece = false;
 	var pieceOnNewSquare = getPiece(pNewCol, pNewRow, pieces);
-	if (!!pieceOnNewSquare) {
+	if (!!pieceOnNewSquare && p.col != pNewCol && p.row != pNewRow) {
 		pieceOnNewSquare.live = false;
+		killedPiece = true;
 	}
 	p.col = pNewCol;
 	p.row = pNewRow;
@@ -19,6 +21,9 @@ function kingInCheck(p, pNewCol, pNewRow) {
 		for (var i = pieces.length - 1; i >= 0; i--) {
 			if (pieces[i].side != king.side) {
 				var lMoves = findAllMoves(pieces[i], pieces);
+				if (pieces[i].pieceType == "pawn" && pieces[i].col == 6 && pieces[i].side == "white") {
+					console.log(lMoves);
+				}
 				for (var j = lMoves.length -1; j >= 0; j--) {
 					if (lMoves[j][0] == king.col && lMoves[j][1] == king.row) {
 						sideInCheck[king.side] = true;
@@ -29,7 +34,7 @@ function kingInCheck(p, pNewCol, pNewRow) {
 	}
 	p.col = oldCol;
 	p.row = oldRow;
-	if (!!pieceOnNewSquare) {
+	if (killedPiece) {
 		pieceOnNewSquare.live = true;
 	}
 	return sideInCheck;
@@ -192,8 +197,8 @@ function findAllMoves(p, pcs) {
 				lMoves[lMoves.length] = xy;
 			}
 		}
-
-		if (!p.hasMoved && !kingInCheck(p, p.col, p.row)[p.side]) {
+		var lastMove = moves[moves.length - 1];
+		if (!p.hasMoved && !!lastMove && lastMove.sideInCheck != p.side) {
 			var rook1 = getPiece(p.col + 3, p.row);
 			var rook2 = getPiece(p.col - 4, p.row);
 			if (!pieceOn(p.col + 1, p.row) && !pieceOn(p.col + 2, p.row)
@@ -206,6 +211,6 @@ function findAllMoves(p, pcs) {
 			}
 		}
 	}
-
+	
 	return lMoves;
 }

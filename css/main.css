@@ -74,6 +74,11 @@ html, body {
 	border: solid 1px #9FACE2;
 }
 
+.whiteMove {
+	width: 70px;
+	margin-left: 20px;
+}
+
 #boardHolder {
 	display: inline-block;
 	width: 540px;
